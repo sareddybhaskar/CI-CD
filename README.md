@@ -1,2 +1,4 @@
-# bhaskar
-kumar
+Jenkins pipline 
+
+Clone repo from the Bitbucket
+
