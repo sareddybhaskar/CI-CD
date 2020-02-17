@@ -34,7 +34,7 @@ properties([[$class: 'JiraProjectProperty'], gitLabConnection(''), [$class: 'Bef
       sh "ssh ubuntu@localhost sudo docker pull ${LATEST}"
       sh "ssh ubuntu@localhost sudo docker stack rm authenticate"
       sleep time: 8000, unit: 'MICROSECONDS'
-      sh "ssh ubuntu@localhost sudo docker stack deploy -c /root/production-stack/auth/authenticate.yml authenticate "
+      sh "ssh ubuntu@localhost sudo IMAGE=${release_number} docker stack deploy -c /root/production-stack/auth/authenticate.yml authenticate "
    }
     
   }
