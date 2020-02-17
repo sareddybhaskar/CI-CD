@@ -1,12 +1,14 @@
 node {
-def NAME   = 'container.co:550/root/production-stack/cognidesk-auth-app'
+sh 'git log -1 --pretty=%h > commit'
+def TAG = readFile('commit').trim()
+def NAME   = 'container.co:550/root/ccxccxzcccxc/dsss'
 def LATEST = "${NAME}:${params.release_number}"
 
     stage ('SCM checkout'){
             git branch: 'production', credentialsId: 'Bitbucket', url: 'https://user@bitbucket.org/skittergit/cognidesk-auth-app.git'
         }
-        sh "git tag ${params.release_number}"
-        sh "git push https://user:password@bitbucket.org/skittergit/cognidesk-auth-app.git --tags"
+        sh "git tag -f ${release_number} ${TAG}"
+        sh "git push https://user:password@bitbucket.org/git/desk-auth-app.git -f ${release_number}"
 
    
 properties([[$class: 'JiraProjectProperty'], gitLabConnection(''), [$class: 'BeforeJobSnapshotJobProperty'], parameters([string(defaultValue: 'release_number', description: '', name: '${release_number}', trim: true)])])    
