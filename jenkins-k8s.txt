@@ -1,0 +1,57 @@
+node ('Pre-prod-k8s'){
+
+def NAME = 'gitlab.com/root/preproduction/workativ-slack'
+
+  stage ('Git SCM checkout'){
+              git branch: 'master', credentialsId: 'Bitbucket', url: 'https://gituser8@bitbucket.org/skitter/workativ.git'
+           }
+sh '''
+echo "Running Versioning Script"
+xc=`cat version`
+#echo "$xc"
+A=1
+xc1=`echo $xc | awk '{print $2}'`
+echo "$xc1"
+xc2=`echo $xc1 | cut -d '.' -f3`
+echo "$xc2"
+xc3=`echo ${xc1%.*}`
+echo "$xc3"
+xc4=`expr $xc2 + $A`
+echo "$xc4"
+NewVersion=`echo "$xc3.$xc4"`
+echo "$NewVersion"
+echo "" > version
+echo "version= $NewVersion" >> version
+cat version
+'''
+def TAG = readFile('version').toString().replaceAll("\\s","").split('=')[1]
+
+/// properties([[$class: 'JiraProjectProperty'], gitLabConnection(''), [$class: 'BeforeJobSnapshotJobProperty'], parameters([string(defaultValue: 'release_number', description: '', name: 'release_number', trim: true)])])    
+
+ stage ('built image'){
+      def cmd = "docker build -t ${NAME}:preprod . "
+       sh cmd
+      }
+
+   stage ('push docker image'){
+      sh "sudo docker tag ${NAME}:preprod gitlab.com/root/preproduction/workativ:${TAG}"
+       sh "sudo docker push gitlab.com/root/preproduction/workativ:${TAG}"      
+     }
+stage ('deploy k8s stack'){ 
+sh '''
+cd /home/ubuntu/kubernates-production
+
+sudo IMAGE=${TAG} kubectl apply -f slack.yml
+echo " you are secusifully deployed" 
+'''
+}
+sh '''
+pwd
+echo "we moving the release succefully with version number ${TAG}"
+git status
+git add version
+git commit -m "Updated version for Docker tagging"
+git push https://bhaskar:password@bitbucket.org/skitter/workativ.git master
+'''
+
+}
